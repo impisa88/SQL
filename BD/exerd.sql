@@ -1,4 +1,5 @@
 drop trigger if exists MonitoraBarco;
+drop trigger if exists AtualizaBarco;
 
 delimiter $$
 
@@ -6,32 +7,31 @@ create trigger MonitoraBarco BEFORE insert ON Reservas
   for each row 
 
   begin
-	IF ((SELECT id_barco FROM Reservas WHERE devolucao IS NULL) AND new.id_barco = id_barco AND new.id_marin = id_marin) THEN
-		signal sqlstate '45000' set MESSAGE_TEXT = 'Este barco está reservado';
-	END IF;
+	
+	if (select recebido from Reservas where new.id_barco = id_barco and new.id_marin = id_marin) = 0 THEN 
+	
+		signal sqlstate '45000' set MESSAGE_TEXT = 'Este barco esta reservado';		
+	end if;
+
   END; $$
 
 delimiter ;
-drop trigger if exists MonitoraBarco;
-
 
 
 delimiter $$
 
-create trigger MonitoraBarco BEFORE insert ON Reservas
+create trigger AtualizaBarco before update ON Reservas
   for each row 
 
   begin
-<<<<<<< HEAD
-	if (select IFNULL(devolucao,1) from Reservas where 101 = id_barco) = 1 THEN 
-		
-		signal sqlstate '45000' set MESSAGE_TEXT = 'Este barco está reservado';		
+	
+	if (select old.devolucao from Reservas where new.id_barco = id_barco and new.id_marin = id_marin) is null THEN 
+	
+		set new.recebido = 1;
+	else
+		set new.recebido = old.recebido;
 	end if;
-=======
-	IF ((SELECT id_barco FROM Reservas WHERE devolucao IS NULL) AND new.id_barco = id_barco AND new.id_marin = id_marin) THEN
-		signal sqlstate '45000' set MESSAGE_TEXT = 'Este barco está reservado';
-	END IF;
->>>>>>> 50c1acec2900a37f50dc3bf262838617b1686773
+
   END; $$
 
 delimiter ;
